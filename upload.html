@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>图片上传</title>
+</head>
+
+<body>
+    <input type="file" onchange="upload(this,0)">
+</body>
+<script>
+    window.onload = function () {
+        let bg = document.getElementById('login_back');
+
+    }
+    function upload(el, i) {
+        let file = el.files[0];
+        let name = file.name; // 文件名
+        let size = file.size; // 总尺寸
+        let shardSize = 2 * 1024 * 1024 // 2 MB为一个分片
+        let shardCount = Math.ceil(size / shardSize); // 片数
+        // 终止递归
+        if (i >= shardCount) {
+            return;
+        }
+
+        let start = i * shardSize;
+        let end = start + shardSize;
+        let packet = file.slice(start, end);
+        let formData = new FormData();
+        formData.append('data', packet);
+        formData.append('lastModified', file.lastModified);
+        formData.append('name', name);
+        formData.append('totalSize', size);
+        formData.append('totalCount', shardCount); // 总片数
+        formData.append('index', i + 1); // 当前为第几片
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'index.php', true);
+        xhr.onreadystatechange = function (msg) {
+            if (xhr.readyState == 4) {
+                console.log(xhr.response,'123');
+                i++;
+                upload(el, i)
+            }
+        };
+        xhr.send(formData)
+    }
+</script>
+
+</html>
